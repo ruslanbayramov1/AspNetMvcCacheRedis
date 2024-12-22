@@ -1,5 +1,6 @@
 ﻿using AspNetMvcCacheRedis.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using StackExchange.Redis;
 
 namespace AspNetMvcCacheRedis.Controllers;
 
@@ -40,5 +41,17 @@ public class HomeController : Controller
     {
         await _redisService.AppendCacheValueAsync(key, val);
         return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> SetHashVal(string hashName, string fieldName, string value)
+    {
+        await _redisService.SetHashValueAsync(hashName, fieldName, value);
+        return RedirectToAction(nameof(Index));
+    }
+
+    public async Task<IActionResult> GetHashVal(string hashName, string field)
+    {
+        int data = await _redisService.GetHashEntryAsync(hashName, field);
+        return Json(data + 1);
     }
 }

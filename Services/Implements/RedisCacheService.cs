@@ -1,6 +1,5 @@
 ﻿using AspNetMvcCacheRedis.Services.Interfaces;
 using StackExchange.Redis;
-using System.Text.Json;
 
 namespace AspNetMvcCacheRedis.Services.Implements;
 
@@ -36,5 +35,29 @@ public class RedisCacheService : IRedisCacheService
     {
         string str = await GetCacheValueAsync(key);
         await _db.StringAppendAsync(key, val);
+    }
+
+    public async Task SetHashValueAsync(string hashName, string field, string value)
+    {
+        HashEntry[] hashEntries = new HashEntry[]
+        {
+            new HashEntry(field, value)
+        };
+        await _db.HashSetAsync(hashName, hashEntries);
+        await _db.KeyExpireAsync(hashName, TimeSpan.FromSeconds(30));
+    }
+
+    public async Task<HashEntry[]> GetHashValueAsync(string hashName)
+    {
+        var data = await _db.HashGetAllAsync(hashName);
+        return data;
+    }
+
+    public async Task<int> GetHashEntryAsync(string hashKey, string fieldName)
+    {
+        RedisValue? value = await _db.HashGetAsync(hashKey, fieldName);
+        if (value == RedisValue.Null) throw new Exception($"Value not found with key {fieldName}!");
+
+        return Convert.ToInt32(value.Value);
     }
 }
